@@ -323,16 +323,13 @@ void *calc_thread(void *param)
       arg->sys->result[1] : arg->sys->result[0];
     printf("\t\tkick save\n");
 
-    save_flag = TRUE;
     if(save_flag == TRUE){
       printf("saving file\n");
       pthread_t th;
       pthread_create(&th, NULL, dump_thread, arg);
       pthread_detach(th);
-//      boost::thread(&dump_result_to_file, arg);
     }
 
-//    boost::mutex::scoped_lock lock(sdlab_mutex_cross1);
     {
       for(int i = 0; i < SDLAB_PLOT_LEN; i++){
         sdlab_cross10_re_buf[i] = data_cross10_re[i] / 10.0;
