@@ -11,10 +11,9 @@
 #include <math.h>
 #include <stdbool.h>
 #include <unistd.h>
-#include <boost/thread.hpp>
 #include "sdlab.h"
 #include "sdlab_http.h"
-#include "sdlab_udpfft.h"
+#include "sdlab_signal.h"
 #include "sdlab_http_cmd.h"
 #include "sdlab.h"
 

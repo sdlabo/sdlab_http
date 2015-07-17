@@ -20,7 +20,7 @@ typedef struct
 }thread_type;
 
 
-extern void sdlab_http_thread();
+extern void* sdlab_http_thread(void* param);
 
 #endif
 

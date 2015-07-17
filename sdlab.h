@@ -2,6 +2,7 @@
 #define SDLAB_H
 
 #define SDLAB_PLOT_LEN 1024 * 100 //1 Mbyte
+#define AJAX_LENGTH 1024 * 1024
 //#define SDLAB_PLOT_LEN 2 * 1024 * 1024
 
 #define TRUE 1
@@ -48,11 +49,6 @@ extern double sdlab_cross_total_im_buf[SDLAB_PLOT_LEN];
 extern double sdlab_fft_total_a_buf[SDLAB_PLOT_LEN];
 extern double sdlab_fft_total_b_buf[SDLAB_PLOT_LEN];
 
-extern boost::mutex sdlab_mutex_channel_a;
-extern boost::mutex sdlab_mutex_channel_b;
-extern boost::mutex sdlab_mutex_cross1;
-extern boost::mutex sdlab_mutex_cross10;
-extern boost::mutex sdlab_mutex_cross_total;
 
 extern int log_drop_count;
 extern double log_calc_max;

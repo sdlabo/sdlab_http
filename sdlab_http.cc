@@ -12,7 +12,7 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <signal.h>
-#include <boost/thread.hpp>
+#include <pthread.h>
 #include "sdlab.h"
 #include "sdlab_http.h"
 #include "sdlab_http_signal.h"
@@ -24,19 +24,19 @@ enum header_end_type{
   CR,
   CRLF,
   CRLFCR,
-  CRLFCRLF,
+  CRLFCRLF
 };
 
 enum parse_state_type{
   PARSE_STATUS,
   PARSE_NAME,
   PARSE_VALUE,
-  SKIP_LF,
+  SKIP_LF
 };
 
 
 int init_server();
-void thread_session(void *param);
+void* thread_session(void *param);
 void send_file(int sock, char* filename, info_type *info, struct stat *sbuf);
 void send_404(int sock);
 int noprintf(const char *s, ...);
@@ -62,7 +62,7 @@ void parse_status_code(char* status, info_type* info)
     SEARCH_CMD,
     SEARCH_PATH,
     SEARCH_VERSION,
-    FIN,
+    FIN
   } state;
 
   state = SEARCH_CMD;
@@ -233,7 +233,7 @@ int parse_header(char* buf, int len, info_type *info)
   return FALSE;
 }
 
-void thread_session(void *param){
+void* thread_session(void *param){
   char buf[2048];
   struct stat sbuf;
   info_type info;
@@ -324,6 +324,8 @@ void thread_session(void *param){
   }
 
   close(sock_client);
+
+  return NULL;
 }
 
 int init_server()
@@ -449,7 +451,7 @@ void send_file(int sock, char* filename, info_type *info, struct stat *sbuf)
 }
 
 
-void sdlab_http_thread()
+void* sdlab_http_thread(void* param)
 {
   int sock_server = init_server();
   signal(SIGPIPE , SIG_IGN);
@@ -470,8 +472,16 @@ void sdlab_http_thread()
     targ = (thread_type*)malloc(sizeof(thread_type));
     targ->sock = sock_client;
     DEBUG("creating thread_session\n");
-    boost::thread th(&thread_session, targ);
-    th.detach();
+
+    pthread_attr_t tattr;
+    pthread_attr_init(&tattr);
+    pthread_attr_setstacksize(&tattr, 10 * 1024 * 1024);
+
+    pthread_t th;
+    pthread_create(&th, &tattr, thread_session, targ);
+    pthread_detach(th);
     DEBUG("thraed detached\n");
   }
+
+  return NULL;
 }

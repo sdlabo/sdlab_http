@@ -11,21 +11,21 @@
 #include <math.h>
 #include <stdbool.h>
 #include <unistd.h>
-#include <boost/thread.hpp>
+#include <pthread.h>
 #include "sdlab.h"
 #include "sdlab_http.h"
 #include "sdlab_http_signal.h"
 
 int phase_offset = 0;
 
-boost::mutex mutex_sine;
+//boost::mutex mutex_sine;
 
-boost::mutex sdlab_mutex_channel_a;
-boost::mutex sdlab_mutex_channel_b;
+//boost::mutex sdlab_mutex_channel_a;
+//boost::mutex sdlab_mutex_channel_b;
 
-boost::mutex sdlab_mutex_cross1;
-boost::mutex sdlab_mutex_cross10;
-boost::mutex sdlab_mutex_cross_total;
+//boost::mutex sdlab_mutex_cross1;
+//boost::mutex sdlab_mutex_cross10;
+//boost::mutex sdlab_mutex_cross_total;
 
 double sdlab_channel_a_buf[SDLAB_PLOT_LEN];
 double sdlab_channel_b_buf[SDLAB_PLOT_LEN];
@@ -60,10 +60,15 @@ int sprintf_sinewave(char* buf, double amp, double phase, int num)
   for(i = 1; i < num; i++){
     len += sprintf(buf + len, ", %f", amp * sin(((double) i)/100.0
                                                 * 2.0 * M_PI + phase));
+    if(len > AJAX_LENGTH){
+      printf("too small AJAX_LENGTH %s %s %d\n",
+             __FILE__, __FUNCTION__, __LINE__);
+      exit(1);
+    }
   }
   len += sprintf(buf + len, "]");
-  if(len > SDLAB_PLOT_LEN){
-    printf("too small SDLAB_PLOT_LEN %s %s %d\n",
+  if(len > AJAX_LENGTH){
+    printf("too small AJAX_LENGTH %s %s %d\n",
            __FILE__, __FUNCTION__, __LINE__);
     exit(1);
   }
@@ -97,8 +102,9 @@ int sprintf_channel_a(char* buf, double amp, int num)
     len += sprintf(buf + len, ", %f", amp * tmpbuf[i]);
   }
   len += sprintf(buf + len, "]");
-  if(len > SDLAB_PLOT_LEN){
-    printf("too small SDLAB_PLOT_LEN %s %s %d\n",
+
+  if(len > AJAX_LENGTH){
+    printf("too small AJAX_LENGTH %s %s %d\n",
            __FILE__, __FUNCTION__, __LINE__);
     exit(1);
   }
@@ -132,8 +138,9 @@ int sprintf_channel_b(char* buf, double amp, int num)
     len += sprintf(buf + len, ", %f", amp * tmpbuf[i]);
   }
   len += sprintf(buf + len, "]");
-  if(len > SDLAB_PLOT_LEN){
-    printf("too small SDLAB_PLOT_LEN %s %s %d\n",
+
+  if(len > AJAX_LENGTH){
+    printf("too small AJAX_LENGTH %s %s %d\n",
            __FILE__, __FUNCTION__, __LINE__);
     exit(1);
   }
@@ -166,8 +173,9 @@ int sprintf_cross1_re(char* buf, double amp, int num)
     len += sprintf(buf + len, ", %f", amp * tmpbuf[i]);
   }
   len += sprintf(buf + len, "]");
-  if(len > SDLAB_PLOT_LEN){
-    printf("too small SDLAB_PLOT_LEN %s %s %d\n",
+
+  if(len > AJAX_LENGTH){
+    printf("too small AJAX_LENGTH %s %s %d\n",
            __FILE__, __FUNCTION__, __LINE__);
     exit(1);
   }
@@ -200,8 +208,9 @@ int sprintf_cross1_im(char* buf, double amp, int num)
     len += sprintf(buf + len, ", %f", amp * tmpbuf[i]);
   }
   len += sprintf(buf + len, "]");
-  if(len > SDLAB_PLOT_LEN){
-    printf("too small SDLAB_PLOT_LEN %s %s %d\n",
+
+  if(len > AJAX_LENGTH){
+    printf("too small AJAX_LENGTH %s %s %d\n",
            __FILE__, __FUNCTION__, __LINE__);
     exit(1);
   }
@@ -235,6 +244,12 @@ int sprintf_fft1_a(char* buf, double amp, int num)
   }
   len += sprintf(buf + len, "]");
 
+  if(len > AJAX_LENGTH){
+    printf("too small AJAX_LENGTH %s %s %d\n",
+           __FILE__, __FUNCTION__, __LINE__);
+    exit(1);
+  }
+
   return len;
 }
 
@@ -263,8 +278,9 @@ int sprintf_fft1_b(char* buf, double amp, int num)
     len += sprintf(buf + len, ", %f", amp * tmpbuf[i]);
   }
   len += sprintf(buf + len, "]");
-  if(len > SDLAB_PLOT_LEN){
-    printf("too small SDLAB_PLOT_LEN %s %s %d\n",
+
+  if(len > AJAX_LENGTH){
+    printf("too small AJAX_LENGTH %s %s %d\n",
            __FILE__, __FUNCTION__, __LINE__);
     exit(1);
   }
@@ -299,8 +315,9 @@ int sprintf_cross10_re(char* buf, double amp, int num)
     len += sprintf(buf + len, ", %f", amp * tmpbuf[i]);
   }
   len += sprintf(buf + len, "]");
-  if(len > SDLAB_PLOT_LEN){
-    printf("too small SDLAB_PLOT_LEN %s %s %d\n",
+
+  if(len > AJAX_LENGTH){
+    printf("too small AJAX_LENGTH %s %s %d\n",
            __FILE__, __FUNCTION__, __LINE__);
     exit(1);
   }
@@ -333,8 +350,9 @@ int sprintf_cross10_im(char* buf, double amp, int num)
     len += sprintf(buf + len, ", %f", amp * tmpbuf[i]);
   }
   len += sprintf(buf + len, "]");
-  if(len > SDLAB_PLOT_LEN){
-    printf("too small SDLAB_PLOT_LEN %s %s %d\n",
+
+  if(len > AJAX_LENGTH){
+    printf("too small AJAX_LENGTH %s %s %d\n",
            __FILE__, __FUNCTION__, __LINE__);
     exit(1);
   }
@@ -367,8 +385,9 @@ int sprintf_fft10_a(char* buf, double amp, int num)
     len += sprintf(buf + len, ", %f", amp * tmpbuf[i]);
   }
   len += sprintf(buf + len, "]");
-  if(len > SDLAB_PLOT_LEN){
-    printf("too small SDLAB_PLOT_LEN %s %s %d\n",
+
+  if(len > AJAX_LENGTH){
+    printf("too small AJAX_LENGTH %s %s %d\n",
            __FILE__, __FUNCTION__, __LINE__);
     exit(1);
   }
@@ -401,8 +420,9 @@ int sprintf_fft10_b(char* buf, double amp, int num)
     len += sprintf(buf + len, ", %f", amp * tmpbuf[i]);
   }
   len += sprintf(buf + len, "]");
-  if(len > SDLAB_PLOT_LEN){
-    printf("too small SDLAB_PLOT_LEN %s %s %d\n",
+
+  if(len > AJAX_LENGTH){
+    printf("too small AJAX_LENGTH %s %s %d\n",
            __FILE__, __FUNCTION__, __LINE__);
     exit(1);
   }
@@ -438,8 +458,9 @@ int sprintf_cross_total_re(char* buf, double amp, int num)
     len += sprintf(buf + len, ", %f", amp * tmpbuf[i]);
   }
   len += sprintf(buf + len, "]");
-  if(len > SDLAB_PLOT_LEN){
-    printf("too small SDLAB_PLOT_LEN %s %s %d\n",
+
+  if(len > AJAX_LENGTH){
+    printf("too small AJAX_LENGTH %s %s %d\n",
            __FILE__, __FUNCTION__, __LINE__);
     exit(1);
   }
@@ -472,8 +493,9 @@ int sprintf_cross_total_im(char* buf, double amp, int num)
     len += sprintf(buf + len, ", %f", amp * tmpbuf[i]);
   }
   len += sprintf(buf + len, "]");
-  if(len > SDLAB_PLOT_LEN){
-    printf("too small SDLAB_PLOT_LEN %s %s %d\n",
+
+  if(len > AJAX_LENGTH){
+    printf("too small AJAX_LENGTH %s %s %d\n",
            __FILE__, __FUNCTION__, __LINE__);
     exit(1);
   }
@@ -506,8 +528,9 @@ int sprintf_fft_total_a(char* buf, double amp, int num)
     len += sprintf(buf + len, ", %f", amp * tmpbuf[i]);
   }
   len += sprintf(buf + len, "]");
-  if(len > SDLAB_PLOT_LEN){
-    printf("too small SDLAB_PLOT_LEN %s %s %d\n",
+
+  if(len > AJAX_LENGTH){
+    printf("too small AJAX_LENGTH %s %s %d\n",
            __FILE__, __FUNCTION__, __LINE__);
     exit(1);
   }
@@ -540,8 +563,9 @@ int sprintf_fft_total_b(char* buf, double amp, int num)
     len += sprintf(buf + len, ", %f", amp * tmpbuf[i]);
   }
   len += sprintf(buf + len, "]");
-  if(len > SDLAB_PLOT_LEN){
-    printf("too small SDLAB_PLOT_LEN %s %s %d\n",
+
+  if(len > AJAX_LENGTH){
+    printf("too small AJAX_LENGTH %s %s %d\n",
            __FILE__, __FUNCTION__, __LINE__);
     exit(1);
   }
@@ -556,14 +580,14 @@ int sprintf_fft_total_b(char* buf, double amp, int num)
 void send_sinewave(int sock)
 {
   char buf[12048];
-  char sinbuf[12048];
+  char sinbuf[AJAX_LENGTH];
   int len = 0;
   int slen = 0;
   int ret;
   double phase;
 
   {
-    boost::mutex::scoped_lock lock(mutex_sine);
+//    boost::mutex::scoped_lock lock(mutex_sine);
     phase_offset++;
     phase = ((double) phase_offset) * 2 * M_PI / 30.0;
   }
@@ -602,7 +626,7 @@ void send_sinewave(int sock)
 void send_channel_a(int sock)
 {
   char buf[12048];
-  char udpbuf[12048];
+  char udpbuf[AJAX_LENGTH];
   int len = 0;
   int ulen = 0;
   int ret;
@@ -641,7 +665,7 @@ void send_channel_a(int sock)
 void send_channel_b(int sock)
 {
   char buf[12048];
-  char udpbuf[12048];
+  char udpbuf[AJAX_LENGTH];
   int len = 0;
   int ulen = 0;
   int ret;
@@ -682,7 +706,7 @@ void send_channel_b(int sock)
 void send_cross1_re(int sock)
 {
   char buf[12048];
-  char udpbuf[12048];
+  char udpbuf[AJAX_LENGTH];
   int len = 0;
   int ulen = 0;
   int ret;
@@ -721,7 +745,7 @@ void send_cross1_re(int sock)
 void send_cross1_im(int sock)
 {
   char buf[12048];
-  char udpbuf[12048];
+  char udpbuf[AJAX_LENGTH];
   int len = 0;
   int ulen = 0;
   int ret;
@@ -760,7 +784,7 @@ void send_cross1_im(int sock)
 void send_fft1_a(int sock)
 {
   char buf[12048];
-  char udpbuf[12048];
+  char udpbuf[AJAX_LENGTH];
   int len = 0;
   int ulen = 0;
   int ret;
@@ -799,7 +823,7 @@ void send_fft1_a(int sock)
 void send_fft1_b(int sock)
 {
   char buf[12048];
-  char udpbuf[12048];
+  char udpbuf[AJAX_LENGTH];
   int len = 0;
   int ulen = 0;
   int ret;
@@ -840,7 +864,7 @@ void send_fft1_b(int sock)
 void send_cross10_re(int sock)
 {
   char buf[12048];
-  char udpbuf[12048];
+  char udpbuf[AJAX_LENGTH];
   int len = 0;
   int ulen = 0;
   int ret;
@@ -879,7 +903,7 @@ void send_cross10_re(int sock)
 void send_cross10_im(int sock)
 {
   char buf[12048];
-  char udpbuf[12048];
+  char udpbuf[AJAX_LENGTH];
   int len = 0;
   int ulen = 0;
   int ret;
@@ -918,7 +942,7 @@ void send_cross10_im(int sock)
 void send_fft10_a(int sock)
 {
   char buf[12048];
-  char udpbuf[12048];
+  char udpbuf[AJAX_LENGTH];
   int len = 0;
   int ulen = 0;
   int ret;
@@ -957,7 +981,7 @@ void send_fft10_a(int sock)
 void send_fft10_b(int sock)
 {
   char buf[12048];
-  char udpbuf[12048];
+  char udpbuf[AJAX_LENGTH];
   int len = 0;
   int ulen = 0;
   int ret;
@@ -998,7 +1022,7 @@ void send_fft10_b(int sock)
 void send_cross_total_re(int sock)
 {
   char buf[12048];
-  char udpbuf[12048];
+  char udpbuf[AJAX_LENGTH];
   int len = 0;
   int ulen = 0;
   int ret;
@@ -1037,7 +1061,7 @@ void send_cross_total_re(int sock)
 void send_cross_total_im(int sock)
 {
   char buf[12048];
-  char udpbuf[12048];
+  char udpbuf[AJAX_LENGTH];
   int len = 0;
   int ulen = 0;
   int ret;
@@ -1076,7 +1100,7 @@ void send_cross_total_im(int sock)
 void send_fft_total_a(int sock)
 {
   char buf[12048];
-  char udpbuf[12048];
+  char udpbuf[AJAX_LENGTH];
   int len = 0;
   int ulen = 0;
   int ret;
@@ -1115,7 +1139,7 @@ void send_fft_total_a(int sock)
 void send_fft_total_b(int sock)
 {
   char buf[12048];
-  char udpbuf[12048];
+  char udpbuf[AJAX_LENGTH];
   int len = 0;
   int ulen = 0;
   int ret;
