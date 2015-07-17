@@ -341,7 +341,6 @@ int init_server()
   }
 
   /* サーバホスト名取得 */
-  printf("socket descriptor = %d\n", sock);
   ret = gethostname(hostname, sizeof(hostname));
   if(ret < 0){
     SDLAB_ERROR("gethostname");
@@ -359,9 +358,10 @@ int init_server()
   while(phost->h_addr_list[n] != NULL){
     struct in_addr *ia;
     ia = (struct in_addr *)phost->h_addr_list[n];
-    printf("%d. %s\n", n + 1, inet_ntoa(*ia));
+    printf("http://%s:%d/006_sdjnt.html\n", inet_ntoa(*ia), SERVER_PORT);
     n++;
   }
+  printf("http://127.0.0.1:%d/006_sdjnt.html\n", SERVER_PORT);
 
   bzero(&server_addr, sizeof(server_addr));
   server_addr.sin_family = AF_INET;

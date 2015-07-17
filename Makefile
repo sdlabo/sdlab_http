@@ -20,6 +20,6 @@ $(TARGETS): $(OBJS)
 
 .PHONY: clean
 clean:
-	$(RM) *~ $(TARGETS) $(OBJS)
+	$(RM) *~ $(TARGETS) $(OBJS) $(DEPS)
 
 -include $(DEPS)

@@ -19,33 +19,6 @@ void create_signal_thread(pthread_t *p_th)
 
 int main(int argc, char **argv)
 {
-  pthread_attr_t tattr;
-  size_t size;
-  int ret;
-
-/* スタックの大きさを取得する */
-  pthread_attr_init(&tattr);
-  ret = pthread_attr_getstacksize(&tattr, &size);
-  printf("stack size = %d\n", size);
-  printf("ret = %d\n", ret);
-
-  ret = pthread_attr_getguardsize(&tattr, &size);
-  printf("guard size = %d\n", size);
-  printf("ret = %d\n", ret);
-
-  ret = pthread_attr_setstacksize(&tattr, 1000 * 1000);
-  ret = pthread_attr_getstacksize(&tattr, &size);
-  printf("stack size = %d\n", size);
-  printf("ret = %d\n", ret);
-
-  ret = pthread_attr_setguardsize(&tattr, 10 * 1000 * 1000);
-  ret = pthread_attr_getguardsize(&tattr, &size);
-  printf("guard size = %d\n", size);
-  printf("ret = %d\n", ret);
-  
-
-//  exit(-1);
-
   pthread_t http_thread, signal_thread;
   create_http_thread(&http_thread);
   create_signal_thread(&signal_thread);
