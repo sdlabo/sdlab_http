@@ -1,0 +1,92 @@
+<html lang="en">
+  <head>
+    <title>test002.php</title>
+    <script type="text/javascript">
+onload = function() {
+  draw();
+};
+
+var data_eq = new Array();
+
+function draw() {
+  
+  var canvas = document.getElementById('canvassample');
+  if ( ! canvas || ! canvas.getContext ) {
+    return false;
+  }
+  var ctx = canvas.getContext('2d');
+  ctx.beginPath();
+  ctx.moveTo(20, 20);
+  ctx.lineTo(820, 20);
+  ctx.lineTo(820, 400);
+  ctx.lineTo(20, 400);
+  ctx.closePath();
+  ctx.stroke();
+  var xmlhttp;
+  if(window.XMLHttpRequest)
+    {
+	xmlhttp=new XMLHttpRequest();
+    }
+  else
+    {
+	xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+    }
+        xmlhttp.open("GET","testsignal.html",true);
+	xmlhttp.onreadystatechange=function()
+    {
+                           
+	if(xmlhttp.readyState==4 || xmlhttp.status==200)
+	  { 
+	    var jsobj=JSON.parse(xmlhttp.responseText);
+	    data_eq=jsobj;
+	   // alert(data_eq[2]);
+
+	  }
+    }
+            xmlhttp.send();
+  	    render();
+ }
+
+
+
+var n_frame = 0;
+
+function render(){
+  n_frame++;
+  
+  var canvas = document.getElementById('canvassample');
+  if ( ! canvas || ! canvas.getContext ) {
+    return false;
+  }
+
+  var ctx = canvas.getContext('2d');
+  ctx.clearRect(20,20,800,380);
+  
+  ctx.beginPath();
+  ctx.moveTo(20, 200);
+
+  for(i = 0; i <= 1000; i++){
+    x = 20 + i * 0.8;
+    y = data_eq[n_frame + i] * 3 + 210;
+    ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+}
+
+window.requestAnimationFrame = (function() {return function(f) { return window.setTimeout(f, 1000 / 100); };}());
+
+
+function animationLoop(){
+  render();
+  requestAnimationFrame(animationLoop);
+}
+animationLoop();
+
+</script>
+  </head>
+  <body>
+    <h1>test002.php</h1>
+    <canvas id="canvassample" width="1024" height="768"></canvas>
+  </body>
+</html>
+

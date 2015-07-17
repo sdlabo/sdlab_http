@@ -1,0 +1,71 @@
+<html lang="en">
+  <head>
+    <title>test002.php</title>
+    <script type="text/javascript">
+
+var canvas;
+var ctx;
+var xmlhttp;
+
+onload = function() {
+  canvas = document.getElementById('canvassample');
+  ctx = canvas.getContext('2d');
+
+  if(window.XMLHttpRequest){
+    xmlhttp = new XMLHttpRequest();
+  }else{
+    xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+  }
+
+  if (! canvas || ! canvas.getContext ) {
+    alert("couldn't find canvas.");
+    return false;
+  }
+
+  draw();
+  setInterval("getSignal()", 100);
+  getSignal();
+};
+
+function getSignal(){
+  xmlhttp.open("GET", "signal_udp0", true);
+  xmlhttp.onreadystatechange = function(){
+    if(xmlhttp.readyState == 4 && xmlhttp.status == 200){
+      var strData = xmlhttp.responseText
+      data_signal = JSON.parse(strData);
+      render();
+    }
+  }
+  xmlhttp.send();
+}
+
+function draw() {
+  ctx.beginPath();
+  ctx.moveTo(20, 20);
+  ctx.lineTo(820, 20);
+  ctx.lineTo(820, 400);
+  ctx.lineTo(20, 400);
+  ctx.closePath();
+  ctx.stroke();
+}
+
+function render(){
+  ctx.clearRect(20, 20, 800, 380);
+  ctx.beginPath();
+  ctx.moveTo(20, 210);
+
+  for(i = 0; i <= 1000; i++){
+    x = 20 + i * 0.8;
+    y = data_signal[i] * 3 + 210;
+    ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+}
+</script>
+  </head>
+  <body>
+    <h1>test002.php</h1>
+    <canvas id="canvassample" width="1024" height="768"></canvas>
+  </body>
+</html>
+

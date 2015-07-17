@@ -1,0 +1,444 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="ja">
+
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <meta http-equiv="content-style-type" content="text/css" />
+    <meta http-equiv="content-script-type" content="text/javascript" />
+    <meta name="author" content="Shunsuke Saruwatari" />
+    <meta name="copyright" content="(C) 2013 Shunsuke Saruwatari" />
+
+    <title>SDJNT: Software Defined Johnson Noise Thermometry ver. 0.06</title>
+
+    <link rev="index start" href="/" />
+    <link href="css.css" media="all" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+
+var canvas_orig_a;
+var canvas_orig_b;
+var canvas_cross1_re;
+var canvas_cross1_im;
+var canvas_fft1_a;
+var canvas_fft1_b;
+var canvas_cross10_re;
+var canvas_cross10_im;
+var canvas_fft10_a;
+var canvas_fft10_b;
+var canvas_cross_total_re;
+var canvas_cross_total_im;
+var canvas_fft_total_a;
+var canvas_fft_total_b;
+
+var ctx_orig_a;
+var ctx_orig_b;
+var ctx_cross1_re;
+var ctx_cross1_im;
+var ctx_fft1_a;
+var ctx_fft1_b;
+var ctx_cross10_re;
+var ctx_cross10_im;
+var ctx_fft10_a;
+var ctx_fft10_b;
+var ctx_cross_total_re;
+var ctx_cross_total_im;
+var ctx_fft_total_a;
+var ctx_fft_total_b;
+
+var xmlhttp_orig_a;
+var xmlhttp_orig_b;
+var xmlhttp_cross1_re;
+var xmlhttp_cross1_im;
+var xmlhttp_fft1_a;
+var xmlhttp_fft1_b;
+var xmlhttp_cross10_re;
+var xmlhttp_cross10_im;
+var xmlhttp_fft10_a;
+var xmlhttp_fft10_b;
+var xmlhttp_cross_total_re;
+var xmlhttp_cross_total_im;
+var xmlhttp_fft_total_a;
+var xmlhttp_fft_total_b;
+
+
+onload = function() {
+  canvas_orig_a = document.getElementById('canvas_orig_a');
+  canvas_orig_b = document.getElementById('canvas_orig_b');
+  canvas_cross1_re = document.getElementById('canvas_cross1_re');
+  canvas_cross1_im = document.getElementById('canvas_cross1_im');
+  canvas_fft1_a = document.getElementById('canvas_fft1_a');
+  canvas_fft1_b = document.getElementById('canvas_fft1_b');
+  canvas_cross10_re = document.getElementById('canvas_cross10_re');
+  canvas_cross10_im = document.getElementById('canvas_cross10_im');
+  canvas_fft10_a = document.getElementById('canvas_fft10_a');
+  canvas_fft10_b = document.getElementById('canvas_fft10_b');
+  canvas_cross_total_re = document.getElementById('canvas_cross_total_re');
+  canvas_cross_total_im = document.getElementById('canvas_cross_total_im');
+  canvas_fft_total_a = document.getElementById('canvas_fft_total_a');
+  canvas_fft_total_b = document.getElementById('canvas_fft_total_b');
+
+  ctx_orig_a = canvas_orig_a.getContext('2d');
+  ctx_orig_b = canvas_orig_b.getContext('2d');
+  ctx_cross1_re = canvas_cross1_re.getContext('2d');
+  ctx_cross1_im = canvas_cross1_im.getContext('2d');
+  ctx_fft1_a = canvas_fft1_a.getContext('2d');
+  ctx_fft1_b = canvas_fft1_b.getContext('2d');
+  ctx_cross10_re = canvas_cross10_re.getContext('2d');
+  ctx_cross10_im = canvas_cross10_im.getContext('2d');
+  ctx_fft10_a = canvas_fft10_a.getContext('2d');
+  ctx_fft10_b = canvas_fft10_b.getContext('2d');
+  ctx_cross_total_re = canvas_cross_total_re.getContext('2d');
+  ctx_cross_total_im = canvas_cross_total_im.getContext('2d');
+  ctx_fft_total_a = canvas_fft_total_a.getContext('2d');
+  ctx_fft_total_b = canvas_fft_total_b.getContext('2d');
+
+  if(window.XMLHttpRequest){
+    xmlhttp_orig_a = new XMLHttpRequest();
+    xmlhttp_orig_b = new XMLHttpRequest();
+    xmlhttp_cross1_re = new XMLHttpRequest();
+    xmlhttp_cross1_im = new XMLHttpRequest();
+    xmlhttp_fft1_a = new XMLHttpRequest();
+    xmlhttp_fft1_b = new XMLHttpRequest();
+    xmlhttp_cross10_re = new XMLHttpRequest();
+    xmlhttp_cross10_im = new XMLHttpRequest();
+    xmlhttp_fft10_a = new XMLHttpRequest();
+    xmlhttp_fft10_b = new XMLHttpRequest();
+    xmlhttp_cross_total_re = new XMLHttpRequest();
+    xmlhttp_cross_total_im = new XMLHttpRequest();
+    xmlhttp_fft_total_a = new XMLHttpRequest();
+    xmlhttp_fft_total_b = new XMLHttpRequest();
+  }else{
+    xmlhttp_orig_a = new ActiveXObject("Microsoft.XMLHTTP");
+    xmlhttp_orig_b = new ActiveXObject("Microsoft.XMLHTTP");
+    xmlhttp_cross1_re = new ActiveXObject("Microsoft.XMLHTTP");
+    xmlhttp_cross1_im = new ActiveXObject("Microsoft.XMLHTTP");
+    xmlhttp_fft1_a = new ActiveXObject("Microsoft.XMLHTTP");
+    xmlhttp_fft1_b = new ActiveXObject("Microsoft.XMLHTTP");
+    xmlhttp_cross10_re = new ActiveXObject("Microsoft.XMLHTTP");
+    xmlhttp_cross10_im = new ActiveXObject("Microsoft.XMLHTTP");
+    xmlhttp_fft10_a = new ActiveXObject("Microsoft.XMLHTTP");
+    xmlhttp_fft10_b = new ActiveXObject("Microsoft.XMLHTTP");
+    xmlhttp_cross_total_re = new ActiveXObject("Microsoft.XMLHTTP");
+    xmlhttp_cross_total_im = new ActiveXObject("Microsoft.XMLHTTP");
+    xmlhttp_fft_total_a = new ActiveXObject("Microsoft.XMLHTTP");
+    xmlhttp_fft_total_b = new ActiveXObject("Microsoft.XMLHTTP");
+  }
+
+
+  setInterval("task_1sec();", 1000);
+};
+
+//data should be 0-100.
+function plotLine(ctx, data, color)
+{
+  var x, y, len;
+  ctx.strokeStyle = color;
+  ctx.clearRect(0, 0, 1000, 100);
+  ctx.beginPath();
+  y = data[0];
+  y = (y - 100.0) * -1.0;
+  len = data.length;
+  ctx.moveTo(0, y);
+  step = 1000 / (len - 1);
+
+  for(i = 1; i < len; i++){
+    x = step * i;
+    y = data[i];
+    y = (y - 100.0) * -1.0;
+    ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+}
+
+//data should be 0-100.
+function plotDot(ctx, data, color)
+{
+  var x, y, len;
+  ctx.strokeStyle = color;
+  ctx.clearRect(0, 0, 1000, 100);
+  y = data[0];
+  y = (y - 100.0) * -1.0;
+  len = data.length;
+
+  ctx.beginPath();
+  ctx.arc(0, y, 0.5, 0, Math.PI * 2, false);
+  ctx.stroke();
+
+  step = 1000 / (len - 1);
+
+  for(i = 1; i < len; i++){
+    x = step * i;
+    y = data[i];
+    y = (y - 100.0) * -1.0;
+    ctx.beginPath();
+    ctx.arc(x, y, 0.5, 0, Math.PI * 2, false);
+    ctx.stroke();
+  }
+}
+
+function task_1sec(){
+  get_orig_a();
+  get_orig_b();
+  get_cross1_re();
+  get_cross1_im();
+  get_fft1_a();
+  get_fft1_b();
+
+  get_cross10_re();
+  get_cross10_im();
+  get_fft10_a();
+  get_fft10_b();
+
+  get_cross_total_re();
+  get_cross_total_im();
+  get_fft_total_a();
+  get_fft_total_b();
+}
+
+function get_orig_a(){
+  xmlhttp_orig_a.open("GET", "signal_channel_a", true);
+  xmlhttp_orig_a.onreadystatechange = function(){
+    if(xmlhttp_orig_a.readyState == 4 && xmlhttp_orig_a.status == 200){
+      var strData = xmlhttp_orig_a.responseText;
+      data_signal = JSON.parse(strData);
+      plotLine(ctx_orig_a, data_signal, 'rgb(255, 0, 0)');
+    }
+  }
+  xmlhttp_orig_a.send();
+}
+
+function get_orig_b(){
+  xmlhttp_orig_b.open("GET", "signal_channel_b", true);
+  xmlhttp_orig_b.onreadystatechange = function(){
+    if(xmlhttp_orig_b.readyState == 4 && xmlhttp_orig_b.status == 200){
+      var strData = xmlhttp_orig_b.responseText;
+      data_signal = JSON.parse(strData);
+      plotLine(ctx_orig_b, data_signal, 'rgb(0, 0, 255)');
+    }
+  }
+  xmlhttp_orig_b.send();
+}
+
+function get_cross1_re(){
+  xmlhttp_cross1_re.open("GET", "signal_cross1_re", true);
+  xmlhttp_cross1_re.onreadystatechange = function(){
+    if(xmlhttp_cross1_re.readyState == 4 && xmlhttp_cross1_re.status == 200){
+      var strData = xmlhttp_cross1_re.responseText;
+      data_signal = JSON.parse(strData);
+      plotLine(ctx_cross1_re, data_signal, 'rgb(255, 0, 0)');
+    }
+  }
+  xmlhttp_cross1_re.send();
+}
+
+function get_cross1_im(){
+  xmlhttp_cross1_im.open("GET", "signal_cross1_im", true);
+  xmlhttp_cross1_im.onreadystatechange = function(){
+    if(xmlhttp_cross1_im.readyState == 4 && xmlhttp_cross1_im.status == 200){
+      var strData = xmlhttp_cross1_im.responseText;
+      data_signal = JSON.parse(strData);
+      plotLine(ctx_cross1_im, data_signal, 'rgb(0, 0, 255)');
+    }
+  }
+  xmlhttp_cross1_im.send();
+}
+
+function get_fft1_a(){
+  xmlhttp_fft1_a.open("GET", "signal_fft1_a", true);
+  xmlhttp_fft1_a.onreadystatechange = function(){
+    if(xmlhttp_fft1_a.readyState == 4 && xmlhttp_fft1_a.status == 200){
+      var strData = xmlhttp_fft1_a.responseText;
+      data_signal = JSON.parse(strData);
+      plotLine(ctx_fft1_a, data_signal, 'rgb(255, 0, 0)');
+    }
+  }
+  xmlhttp_fft1_a.send();
+}
+
+function get_fft1_b(){
+  xmlhttp_fft1_b.open("GET", "signal_fft1_b", true);
+  xmlhttp_fft1_b.onreadystatechange = function(){
+    if(xmlhttp_fft1_b.readyState == 4 && xmlhttp_fft1_b.status == 200){
+      var strData = xmlhttp_fft1_b.responseText;
+      data_signal = JSON.parse(strData);
+      plotLine(ctx_fft1_b, data_signal, 'rgb(0, 0, 255)');
+    }
+  }
+  xmlhttp_fft1_b.send();
+}
+
+function get_cross10_re(){
+  xmlhttp_cross10_re.open("GET", "signal_cross10_re", true);
+  xmlhttp_cross10_re.onreadystatechange = function(){
+    if(xmlhttp_cross10_re.readyState == 4 && xmlhttp_cross10_re.status == 200){
+      var strData = xmlhttp_cross10_re.responseText;
+      data_signal = JSON.parse(strData);
+      plotLine(ctx_cross10_re, data_signal, 'rgb(255, 0, 0)');
+    }
+  }
+  xmlhttp_cross10_re.send();
+}
+
+function get_cross10_im(){
+  xmlhttp_cross10_im.open("GET", "signal_cross10_im", true);
+  xmlhttp_cross10_im.onreadystatechange = function(){
+    if(xmlhttp_cross10_im.readyState == 4 && xmlhttp_cross10_im.status == 200){
+      var strData = xmlhttp_cross10_im.responseText;
+      data_signal = JSON.parse(strData);
+      plotLine(ctx_cross10_im, data_signal, 'rgb(0, 0, 255)');
+    }
+  }
+  xmlhttp_cross10_im.send();
+}
+
+function get_fft10_a(){
+  xmlhttp_fft10_a.open("GET", "signal_fft10_a", true);
+  xmlhttp_fft10_a.onreadystatechange = function(){
+    if(xmlhttp_fft10_a.readyState == 4 && xmlhttp_fft10_a.status == 200){
+      var strData = xmlhttp_fft10_a.responseText;
+      data_signal = JSON.parse(strData);
+      plotLine(ctx_fft10_a, data_signal, 'rgb(255, 0, 0)');
+    }
+  }
+  xmlhttp_fft10_a.send();
+}
+
+function get_fft10_b(){
+  xmlhttp_fft10_b.open("GET", "signal_fft10_b", true);
+  xmlhttp_fft10_b.onreadystatechange = function(){
+    if(xmlhttp_fft10_b.readyState == 4 && xmlhttp_fft10_b.status == 200){
+      var strData = xmlhttp_fft10_b.responseText;
+      data_signal = JSON.parse(strData);
+      plotLine(ctx_fft10_b, data_signal, 'rgb(0, 0, 255)');
+    }
+  }
+  xmlhttp_fft10_b.send();
+}
+
+//total
+
+function get_cross_total_re(){
+  xmlhttp_cross_total_re.open("GET", "signal_cross_total_re", true);
+  xmlhttp_cross_total_re.onreadystatechange = function(){
+    if(xmlhttp_cross_total_re.readyState == 4 && xmlhttp_cross_total_re.status == 200){
+      var strData = xmlhttp_cross_total_re.responseText;
+      data_signal = JSON.parse(strData);
+      plotLine(ctx_cross_total_re, data_signal, 'rgb(255, 0, 0)');
+    }
+  }
+  xmlhttp_cross_total_re.send();
+}
+
+function get_cross_total_im(){
+  xmlhttp_cross_total_im.open("GET", "signal_cross_total_im", true);
+  xmlhttp_cross_total_im.onreadystatechange = function(){
+    if(xmlhttp_cross_total_im.readyState == 4 && xmlhttp_cross_total_im.status == 200){
+      var strData = xmlhttp_cross_total_im.responseText;
+      data_signal = JSON.parse(strData);
+      plotLine(ctx_cross_total_im, data_signal, 'rgb(0, 0, 255)');
+    }
+  }
+  xmlhttp_cross_total_im.send();
+}
+
+function get_fft_total_a(){
+  xmlhttp_fft_total_a.open("GET", "signal_fft_total_a", true);
+  xmlhttp_fft_total_a.onreadystatechange = function(){
+    if(xmlhttp_fft_total_a.readyState == 4 && xmlhttp_fft_total_a.status == 200){
+      var strData = xmlhttp_fft_total_a.responseText;
+      data_signal = JSON.parse(strData);
+      plotLine(ctx_fft_total_a, data_signal, 'rgb(255, 0, 0)');
+    }
+  }
+  xmlhttp_fft_total_a.send();
+}
+
+function get_fft_total_b(){
+  xmlhttp_fft_total_b.open("GET", "signal_fft_total_b", true);
+  xmlhttp_fft_total_b.onreadystatechange = function(){
+    if(xmlhttp_fft_total_b.readyState == 4 && xmlhttp_fft_total_b.status == 200){
+      var strData = xmlhttp_fft_total_b.responseText;
+      data_signal = JSON.parse(strData);
+      plotLine(ctx_fft_total_b, data_signal, 'rgb(0, 0, 255)');
+    }
+  }
+  xmlhttp_fft_total_b.send();
+}
+
+
+function draw() {
+  ctx.beginPath();
+  ctx.moveTo(5, 5);
+  ctx.lineTo(95, 5);
+  ctx.lineTo(95, 95);
+  ctx.lineTo(5, 95);
+  ctx.closePath();
+  ctx.stroke();
+}
+
+function render(){
+  ctx.clearRect(20, 20, 800, 380);
+  ctx.beginPath();
+  ctx.moveTo(20, 210);
+
+  for(i = 0; i <= 1000; i++){
+    x = 20 + i * 0.8;
+    y = data_signal[i] * 3 + 210;
+    ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+}
+</script>
+</head>
+<body>
+<div id="header">
+SDLAB-JNT ver. 0.05
+</div>
+<div id="navigation">
+<!--<div class="nitem"><a href="./">Log Data</a></div>-->
+<!--<div class="nitem"><a href="./">Performance</a></div>-->
+<div class="nitem"><a href="/cmd/reset">reset</a></div>
+<div class="nitem"><a href="/cmd/start">start</a></div>
+<div class="nitem"><a href="/cmd/stop">stop</a></div>
+</div><!-- navigation -->
+
+ <!-- menu page end-->
+<div id="main">
+  <h3 class="topic">Original Signal (2 MHz)</h3>
+  <h4>channel A</h4>
+  <canvas id="canvas_orig_a" width="1000px" height="100px"></canvas>
+  <h4>channel B</h4>
+  <canvas id="canvas_orig_b" width="1000px" height="100px"></canvas>
+
+  <h3 class="topic">This 1 sec Power Spectrum (FFT)</h3>
+  <h4>cross correlation real part</h4>
+  <canvas id="canvas_cross1_re" width="1000px" height="100px"></canvas>
+  <h4>cross correlation imaginary part</h4>
+  <canvas id="canvas_cross1_im" width="1000px" height="100px"></canvas>
+  <h4>channel A</h4>
+  <canvas id="canvas_fft1_a" width="1000px" height="100px"></canvas>
+  <h4>channel B</h4>
+  <canvas id="canvas_fft1_b" width="1000px" height="100px"></canvas>
+
+  <h3 class="topic">This 10 sec Accumulated Power Spectrum (FFT)</h3>
+  <h4>cross correlation real part</h4>
+  <canvas id="canvas_cross10_re" width="1000px" height="100px"></canvas>
+  <h4>cross correlation imaginary part</h4>
+  <canvas id="canvas_cross10_im" width="1000px" height="100px"></canvas>
+  <h4>channel A</h4>
+  <canvas id="canvas_fft10_a" width="1000px" height="100px"></canvas>
+  <h4>channel B</h4>
+  <canvas id="canvas_fft10_b" width="1000px" height="100px"></canvas>
+
+  <h3 class="topic">Accumulated All Power Spectrum (FFT)</h3>
+  <h4>cross correlation real part</h4>
+  <canvas id="canvas_cross_total_re" width="1000px" height="100px"></canvas>
+  <h4>cross correlation imaginary part</h4>
+  <canvas id="canvas_cross_total_im" width="1000px" height="100px"></canvas>
+  <h4>channel A</h4>
+  <canvas id="canvas_fft_total_a" width="1000px" height="100px"></canvas>
+  <h4>channel B</h4>
+  <canvas id="canvas_fft_total_b" width="1000px" height="100px"></canvas>
+</div>
+</body>
+</html>
+
